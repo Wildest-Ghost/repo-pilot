@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Test and quality-tool artifacts
+.pytest_cache/
+.ruff_cache/
+.pyright/
+.coverage
+coverage.xml
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Frontend artifacts
+apps/web/node_modules/
+apps/web/dist/
+
+# Generated project artifacts
+tmp/
+evals/reports/
+
+# IDE settings
+.vscode/
+.idea/
