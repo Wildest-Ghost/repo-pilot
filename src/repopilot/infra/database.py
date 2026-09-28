@@ -1,8 +1,13 @@
+"""SQLAlchemy 数据库连接与会话工厂。
+
+数据库连接只在真正使用 SessionLocal 或 init_db 时发挥作用；API 当前
+默认使用内存仓库，因此开发环境不需要先启动 PostgreSQL。
+"""
+
 from os import environ
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
-
 
 DATABASE_URL = environ.get(
     "REPOPILOT_DATABASE_URL",
@@ -11,6 +16,8 @@ DATABASE_URL = environ.get(
 
 
 class Base(DeclarativeBase):
+    """所有 SQLAlchemy ORM 模型的声明基类。"""
+
     pass
 
 
@@ -27,13 +34,11 @@ SessionLocal = sessionmaker(
 
 
 def init_db() -> None:
+    """创建当前 ORM 模型对应的表。
 
-    from repopilot.infra.models import TaskEventModel, TaskModel
+    这是早期原型的初始化入口，不替代正式迁移工具，也不会在 API 启动时
+    自动执行。
+    """
 
-    Base.metadata.create_all(
-        bind=engine,
-        tables=[
-            TaskModel.__table__,
-            TaskEventModel.__table__,
-        ],
-    )
+    # 当前 API 尚未接入该适配器，但保留这个入口以便后续持久化里程碑启用。
+    Base.metadata.create_all(bind=engine)
