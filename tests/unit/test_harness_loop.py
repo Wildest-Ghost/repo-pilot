@@ -5,12 +5,14 @@ from collections.abc import Mapping
 from uuid import uuid4
 
 from repopilot.harness import (
+    ApprovalStatus,
     HarnessLoop,
     HarnessRunRequest,
     HarnessStopReason,
 )
 from repopilot.runtime import (
     AgentRun,
+    AgentRunStatus,
     AssistantMessage,
     FakeBackend,
     ModelResponse,
@@ -19,6 +21,7 @@ from repopilot.runtime import (
     ToolResultStatus,
     Turn,
     TurnKind,
+    TurnStatus,
     UserMessage,
 )
 from repopilot.runtime.tool import ToolDefinition
@@ -218,3 +221,47 @@ async def test_harness_loop_can_be_cancelled_before_next_step() -> None:
 
     assert result.stop_reason is HarnessStopReason.CANCELLED
     assert not backend.requests
+
+
+async def test_harness_loop_waits_for_side_effect_approval() -> None:
+    """副作用工具调用应暂停运行并返回可恢复审批请求。"""
+
+    run, session, turn = make_runtime()
+    registry = ToolRegistry()
+    called = False
+
+    async def write_file(_: Mapping[str, object]) -> object:
+        nonlocal called
+        called = True
+        return {"written": True}
+
+    registry.register(
+        ToolDefinition(
+            name="write_file",
+            description="写入文件",
+            read_only=False,
+        ),
+        write_file,
+    )
+    backend = FakeBackend(
+        responses=[
+            ModelResponse(
+                content=None,
+                tool_calls=(ToolCall(name="write_file"),),
+                finish_reason="tool_calls",
+            )
+        ]
+    )
+
+    result = await HarnessLoop(
+        backend=backend,
+        tool_registry=registry,
+    ).run(make_request(run, session, turn))
+
+    assert result.stop_reason is HarnessStopReason.WAITING_APPROVAL
+    assert result.run_status is AgentRunStatus.WAITING_APPROVAL
+    assert result.turn_status is TurnStatus.WAITING_APPROVAL
+    assert result.approval_request is not None
+    assert result.approval_request.status is ApprovalStatus.PENDING
+    assert result.tool_results[0].status is ToolResultStatus.APPROVAL_REQUIRED
+    assert called is False

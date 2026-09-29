@@ -42,6 +42,7 @@ class AgentRun:
     task_id: UUID
     backend: str
     model: str
+    workspace_root: str | None = None
     id: UUID = field(default_factory=uuid4)
     status: AgentRunStatus = AgentRunStatus.CREATED
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
@@ -90,6 +91,11 @@ class AgentRun:
 
         if not self.model:
             raise ValueError("AgentRun model must not be empty.")
+
+        if self.workspace_root is not None:
+            self.workspace_root = self.workspace_root.strip()
+            if not self.workspace_root:
+                raise ValueError("AgentRun workspace_root must not be empty.")
 
     @property
     def is_terminal(self) -> bool:

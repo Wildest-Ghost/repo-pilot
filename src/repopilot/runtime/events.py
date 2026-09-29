@@ -14,8 +14,12 @@ class RuntimeEventType(StrEnum):
     SESSION_CREATED = "session.created"
     TURN_CREATED = "turn.created"
     STEP_CREATED = "step.created"
+    MODEL_REQUESTED = "model.requested"
+    MODEL_RESPONDED = "model.responded"
     TOOL_CALL_REQUESTED = "tool_call.requested"
     TOOL_RESULT_RECORDED = "tool_result.recorded"
+    APPROVAL_REQUESTED = "approval.requested"
+    APPROVAL_RESOLVED = "approval.resolved"
     ARTIFACT_RECORDED = "artifact.recorded"
     STATUS_CHANGED = "status.changed"
 
